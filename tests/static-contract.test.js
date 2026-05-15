@@ -73,6 +73,9 @@ test("dark OSM basemap and readable label styling are configured", () => {
 
   assert.match(config, /dark-osm-basemap\.png/);
   assert.match(config, /basemaps\.cartocdn\.com\/dark_all/);
+  assert.match(config, /useLiveTiles:\s*true/);
+  assert.match(app, /UrlTemplateImageryProvider/);
+  assert.match(app, /enablePickFeatures:\s*false/);
   assert.match(app, /font:\s*"700 18px/);
   assert.match(app, /outlineWidth:\s*5/);
   assert.match(css, /text-shadow:/);

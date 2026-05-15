@@ -203,7 +203,7 @@
   }
 
   function addLocalBasemapEntity() {
-    if (!config.localBasemap) {
+    if (!config.localBasemap || config.imagery.useLiveTiles) {
       return;
     }
 
@@ -536,11 +536,12 @@
   function initViewer() {
     var baseLayer = false;
 
-    if (!config.localBasemap) {
+    if (config.imagery.useLiveTiles) {
       baseLayer = new Cesium.ImageryLayer(new Cesium.UrlTemplateImageryProvider({
         url: config.imagery.url,
         credit: config.imagery.credit,
         maximumLevel: config.imagery.maximumLevel,
+        enablePickFeatures: false,
       }));
     }
 

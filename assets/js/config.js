@@ -9,8 +9,10 @@
     appName: "cesiumStage",
     imagery: {
       url: "https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png",
+      rawTemplateUrl: "https://a.basemaps.cartocdn.com/dark_all/${z}/${x}/${y}.png",
       credit: "OpenStreetMap contributors, CARTO",
       maximumLevel: 19,
+      useLiveTiles: true,
     },
     localBasemap: {
       url: "assets/images/dark-osm-basemap.png",
