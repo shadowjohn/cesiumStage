@@ -4,7 +4,10 @@ param(
   [int]$MinX = 13679,
   [int]$MaxX = 13687,
   [int]$MinY = 7058,
-  [int]$MaxY = 7064
+  [int]$MaxY = 7064,
+  [string]$TileUrlTemplate = "https://wmts.nlsc.gov.tw/wmts/EMAP/default/GoogleMapsCompatible/{z}/{y}/{x}",
+  [string]$OutputName = "demo-basemap.png",
+  [string]$CacheName = "emap-tiles"
 )
 
 $ErrorActionPreference = "Stop"
@@ -12,13 +15,13 @@ $ErrorActionPreference = "Stop"
 Add-Type -AssemblyName System.Drawing
 
 $imageDir = Join-Path $ProjectRoot "assets\images"
-$tileDir = Join-Path $ProjectRoot ".cache\emap-tiles"
+$tileDir = Join-Path $ProjectRoot ".cache\$CacheName"
 New-Item -ItemType Directory -Force -Path $imageDir,$tileDir | Out-Null
 
 $tileSize = 256
 $cols = $MaxX - $MinX + 1
 $rows = $MaxY - $MinY + 1
-$outputPath = Join-Path $imageDir "demo-basemap.png"
+$outputPath = Join-Path $imageDir $OutputName
 
 $canvas = New-Object System.Drawing.Bitmap ($cols * $tileSize), ($rows * $tileSize)
 $graphics = [System.Drawing.Graphics]::FromImage($canvas)
@@ -28,7 +31,7 @@ try {
   for ($y = $MinY; $y -le $MaxY; $y++) {
     for ($x = $MinX; $x -le $MaxX; $x++) {
       $tilePath = Join-Path $tileDir "$Zoom-$x-$y.jpg"
-      $url = "https://wmts.nlsc.gov.tw/wmts/EMAP/default/GoogleMapsCompatible/$Zoom/$y/$x"
+      $url = $TileUrlTemplate.Replace("{z}", [string]$Zoom).Replace("{x}", [string]$x).Replace("{y}", [string]$y)
 
       if (-not (Test-Path -LiteralPath $tilePath)) {
         Invoke-WebRequest -Uri $url -OutFile $tilePath

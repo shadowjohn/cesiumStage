@@ -8,12 +8,13 @@
     cesiumBaseUrl: cesiumBaseUrl,
     appName: "cesiumStage",
     imagery: {
-      url: "https://wmts.nlsc.gov.tw/wmts/EMAP/default/GoogleMapsCompatible/{z}/{y}/{x}",
-      credit: "內政部國土測繪中心",
+      url: "https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png",
+      credit: "OpenStreetMap contributors, CARTO",
       maximumLevel: 19,
     },
     localBasemap: {
-      url: "assets/images/demo-basemap.png",
+      url: "assets/images/dark-osm-basemap.png",
+      sourceUrl: "https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png",
       west: 120.56396484375,
       south: 24.026396666017327,
       east: 120.76171875,

@@ -19,6 +19,7 @@ http://localhost:5173
 
 - Cesium 1.120 loaded from FocusIT CDN.
 - Static browser-global app, no bundler and no framework.
+- Default basemap uses the dark OSM style from Carto, generated locally from the same tile URL used by the Easymap demo.
 - Flood level slider renders animated water polygons.
 - Shock demo mode adds automatic water-level rise, foam outlines, alert banner, CCTV pulse rings, and road interruption glow.
 - CCTV points switch color when their elevation is below the simulated water level plus safety buffer.
@@ -73,10 +74,17 @@ Build the same-origin demo basemap with:
 pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\tools\build-local-basemap.ps1
 ```
 
+Build the dark OSM basemap with:
+
+```powershell
+pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\tools\build-local-basemap.ps1 -TileUrlTemplate "https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png" -OutputName "dark-osm-basemap.png" -CacheName "carto-dark-osm-tiles"
+```
+
 Generated output:
 
 ```text
 assets\images\demo-basemap.png
+assets\images\dark-osm-basemap.png
 ```
 
 ## Verify

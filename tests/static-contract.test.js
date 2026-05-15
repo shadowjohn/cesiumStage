@@ -64,3 +64,17 @@ test("shock demo controls are present in the app shell", () => {
   assert.match(html, /id="impactHeadline"/);
   assert.match(sampleData, /debrisFlows/);
 });
+
+test("dark OSM basemap and readable label styling are configured", () => {
+  const config = readProjectFile("assets/js/config.js");
+  const app = readProjectFile("assets/js/app.js");
+  const css = readProjectFile("assets/css/app.css");
+  const basemapPath = path.join(root, "assets/images/dark-osm-basemap.png");
+
+  assert.match(config, /dark-osm-basemap\.png/);
+  assert.match(config, /basemaps\.cartocdn\.com\/dark_all/);
+  assert.match(app, /font:\s*"700 18px/);
+  assert.match(app, /outlineWidth:\s*5/);
+  assert.match(css, /text-shadow:/);
+  assert.ok(fs.statSync(basemapPath).size > 100000);
+});
