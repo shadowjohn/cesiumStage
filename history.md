@@ -9,6 +9,13 @@
 - 使用 `C:\ms4w_MSSQL\GDAL\ogr2ogr.exe` 將土石流潛勢區與潛勢溪流 zip 轉為 WGS84 GeoJSON / JS globals。
 - Git remote 使用 `git@github.com:shadowjohn/cesiumStage.git`。
 
+## 2026-05-16 Shock Demo
+
+- 增加自動升水播放、重置、警報 banner 與災情摘要列。
+- 淹水面增加水紋、泡沫邊界與高水位 CRITICAL 顯示。
+- CCTV 受影響時變紅並顯示脈動警戒圈，道路中斷改成發光紅線。
+- 新增示範土石流流路與泥流粒子動畫，用於展示「山坡往下衝」的戰情效果。
+
 ## 延續事項
 
 - 真實 DEM / DTM 轉 quantized-mesh terrain。

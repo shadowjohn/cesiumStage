@@ -54,3 +54,13 @@ test("local basemap is available as a same-origin image", () => {
   assert.match(config, /localBasemap/);
   assert.ok(fs.statSync(basemapPath).size > 100000);
 });
+
+test("shock demo controls are present in the app shell", () => {
+  const html = readProjectFile("index.html");
+  const sampleData = readProjectFile("assets/js/sample-data.js");
+
+  assert.match(html, /id="playScenario"/);
+  assert.match(html, /id="alertBanner"/);
+  assert.match(html, /id="impactHeadline"/);
+  assert.match(sampleData, /debrisFlows/);
+});

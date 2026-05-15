@@ -42,10 +42,13 @@
       baseHeight: 78,
       safetyBuffer: 0.8,
       normalMap: cesiumBaseUrl + "Assets/Textures/waterNormals.jpg",
+      autoRiseIntervalMs: 90,
+      autoRiseStep: 0.08,
     },
     debris: {
       maxAreaAlpha: 0.28,
       streamWidth: 3,
+      particleSpeed: 0.16,
     },
   };
 })(window);

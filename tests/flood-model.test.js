@@ -39,3 +39,25 @@ test("getVisibleFloodBands returns only polygons reached by current level", () =
     ["band-01", "band-02"],
   );
 });
+
+test("getBlockedRoads returns roads interrupted by water level", () => {
+  const roads = [
+    { id: "road-safe", minLevel: 4.5 },
+    { id: "road-warning", minLevel: 2.5 },
+    { id: "road-critical", minLevel: 1.2 },
+  ];
+
+  const result = floodModel.getBlockedRoads(roads, 2.8);
+
+  assert.deepEqual(result.blockedIds, ["road-warning", "road-critical"]);
+  assert.equal(result.total, 3);
+  assert.equal(result.blocked, 2);
+});
+
+test("getImpactForecast produces urgent text as water approaches max level", () => {
+  const forecast = floodModel.getImpactForecast(4.4, { min: 0, max: 5 });
+
+  assert.equal(forecast.severity, "critical");
+  assert.equal(forecast.minutes, 4);
+  assert.match(forecast.message, /4 分鐘後/);
+});

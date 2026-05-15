@@ -20,10 +20,12 @@ http://localhost:5173
 - Cesium 1.120 loaded from FocusIT CDN.
 - Static browser-global app, no bundler and no framework.
 - Flood level slider renders animated water polygons.
+- Shock demo mode adds automatic water-level rise, foam outlines, alert banner, CCTV pulse rings, and road interruption glow.
 - CCTV points switch color when their elevation is below the simulated water level plus safety buffer.
 - Demo road segments turn red when the water level reaches their interruption threshold.
 - Local same-origin NLSC EMAP basemap is used to avoid WebGL texture restrictions on cross-origin tiles.
 - Debris-flow potential areas and streams are loaded from generated JS globals.
+- Demo debris-flow paths render glowing flow lines and animated mud particles when the scenario reaches each threshold.
 
 ## Cesium CDN
 

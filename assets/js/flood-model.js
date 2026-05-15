@@ -42,10 +42,46 @@
     });
   }
 
+  function getBlockedRoads(roads, waterLevel) {
+    var level = toNumber(waterLevel, 0);
+    var blockedIds = [];
+
+    (roads || []).forEach(function (road) {
+      if (level >= toNumber(road.minLevel, Number.POSITIVE_INFINITY)) {
+        blockedIds.push(road.id);
+      }
+    });
+
+    return {
+      total: (roads || []).length,
+      blocked: blockedIds.length,
+      blockedIds: blockedIds,
+    };
+  }
+
+  function getImpactForecast(waterLevel, range) {
+    var min = toNumber(range && range.min, 0);
+    var max = Math.max(toNumber(range && range.max, 5), min + 0.1);
+    var level = clampWaterLevel(waterLevel, { min: min, max: max });
+    var ratio = (level - min) / (max - min);
+    var minutes = Math.max(3, Math.ceil((1 - ratio) * 28));
+    var severity = ratio >= 0.8 ? "critical" : ratio >= 0.5 ? "warning" : "watch";
+    var message = minutes + " 分鐘後低窪道路可能受淹，請優先確認 CCTV 與道路中斷點。";
+
+    return {
+      severity: severity,
+      minutes: minutes,
+      ratio: ratio,
+      message: message,
+    };
+  }
+
   var api = {
     clampWaterLevel: clampWaterLevel,
     getAffectedCctv: getAffectedCctv,
     getVisibleFloodBands: getVisibleFloodBands,
+    getBlockedRoads: getBlockedRoads,
+    getImpactForecast: getImpactForecast,
   };
 
   if (typeof module !== "undefined" && module.exports) {

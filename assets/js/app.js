@@ -7,15 +7,26 @@
   var model = root.CESIUM_STAGE_MODEL;
   var viewer = null;
   var floodPrimitives = [];
+  var foamEntities = [];
   var localBasemapPrimitive = null;
   var cctvEntities = {};
+  var cctvRingEntities = {};
   var roadEntities = [];
+  var debrisFlowEntities = [];
+  var autoRiseTimer = null;
   var debrisAreaSource = null;
   var debrisStreamSource = null;
 
   var dom = {
     waterLevel: document.getElementById("waterLevel"),
     waterLevelValue: document.getElementById("waterLevelValue"),
+    playScenario: document.getElementById("playScenario"),
+    resetScenario: document.getElementById("resetScenario"),
+    alertBanner: document.getElementById("alertBanner"),
+    alertLevel: document.getElementById("alertLevel"),
+    alertMessage: document.getElementById("alertMessage"),
+    impactHeadline: document.getElementById("impactHeadline"),
+    impactDetail: document.getElementById("impactDetail"),
     floodBandCount: document.getElementById("floodBandCount"),
     affectedCctvCount: document.getElementById("affectedCctvCount"),
     roadBreakCount: document.getElementById("roadBreakCount"),
@@ -39,6 +50,25 @@
     return model.clampWaterLevel(dom.waterLevel.value, config.water);
   }
 
+  function getClockSeconds() {
+    return viewer ? viewer.clock.currentTime.secondsOfDay : 0;
+  }
+
+  function pulseColor(cssColor, minAlpha, maxAlpha, speed, phase) {
+    return new Cesium.CallbackProperty(function () {
+      var wave = (Math.sin(getClockSeconds() * speed + (phase || 0)) + 1) / 2;
+      var alpha = minAlpha + (maxAlpha - minAlpha) * wave;
+
+      return Cesium.Color.fromCssColorString(cssColor).withAlpha(alpha);
+    }, false);
+  }
+
+  function toCartesianPath(path, height) {
+    return path.map(function (xy) {
+      return Cesium.Cartesian3.fromDegrees(xy[0], xy[1], height);
+    });
+  }
+
   function createWaterMaterial(band) {
     var color = Cesium.Color.fromCssColorString(band.color || "#287bd9").withAlpha(0.56);
 
@@ -58,6 +88,11 @@
       viewer.scene.primitives.remove(primitive);
     });
     floodPrimitives = [];
+
+    foamEntities.forEach(function (entity) {
+      viewer.entities.remove(entity);
+    });
+    foamEntities = [];
   }
 
   function createFloodPrimitive(band, waterLevel, index) {
@@ -83,6 +118,25 @@
     }));
   }
 
+  function createFoamEntity(band, waterLevel, index) {
+    var closed = band.coordinates.concat([band.coordinates[0]]);
+    var height = config.water.baseHeight + waterLevel + index * 0.14 + 0.3;
+
+    return viewer.entities.add({
+      id: band.id + "-foam",
+      name: band.name + " 岸邊泡沫",
+      polyline: {
+        positions: toCartesianPath(closed, height),
+        width: 3 + index,
+        material: new Cesium.PolylineGlowMaterialProperty({
+          glowPower: 0.28,
+          color: pulseColor("#d9f7ff", 0.35, 0.96, 4.2, index),
+        }),
+        clampToGround: false,
+      },
+    });
+  }
+
   function renderFlood(waterLevel) {
     clearFloodPrimitives();
 
@@ -94,6 +148,7 @@
     var visibleBands = model.getVisibleFloodBands(sampleData.floodBands, waterLevel);
     visibleBands.forEach(function (band, index) {
       floodPrimitives.push(createFloodPrimitive(band, waterLevel, index));
+      foamEntities.push(createFoamEntity(band, waterLevel, index));
     });
 
     dom.floodBandCount.textContent = String(visibleBands.length);
@@ -126,6 +181,24 @@
       });
 
       cctvEntities[camera.id] = entity;
+      cctvRingEntities[camera.id] = viewer.entities.add({
+        id: camera.id + "-alert-ring",
+        name: camera.name + " 警戒圈",
+        position: Cesium.Cartesian3.fromDegrees(camera.longitude, camera.latitude, config.water.baseHeight + 2),
+        show: false,
+        ellipse: {
+          semiMajorAxis: new Cesium.CallbackProperty(function () {
+            return 280 + Math.sin(getClockSeconds() * 5) * 70;
+          }, false),
+          semiMinorAxis: new Cesium.CallbackProperty(function () {
+            return 280 + Math.sin(getClockSeconds() * 5) * 70;
+          }, false),
+          material: new Cesium.ColorMaterialProperty(pulseColor("#ff5f56", 0.08, 0.36, 5, 0)),
+          outline: true,
+          outlineColor: Cesium.Color.fromCssColorString("#ff5f56").withAlpha(0.9),
+          height: config.water.baseHeight + 1,
+        },
+      });
     });
   }
 
@@ -160,6 +233,8 @@
   function addRoadEntities() {
     roadEntities = sampleData.roads.map(function (road) {
       return {
+        id: road.id,
+        name: road.name,
         minLevel: road.minLevel,
         entity: viewer.entities.add({
           id: road.id,
@@ -179,35 +254,60 @@
 
   function updateCctvAndRoads(waterLevel) {
     var affected = model.getAffectedCctv(sampleData.cctv, waterLevel, config.water.safetyBuffer);
+    var blocked = model.getBlockedRoads(sampleData.roads, waterLevel);
     var affectedMap = {};
+    var blockedMap = {};
 
     affected.affectedIds.forEach(function (id) {
       affectedMap[id] = true;
     });
 
+    blocked.blockedIds.forEach(function (id) {
+      blockedMap[id] = true;
+    });
+
     sampleData.cctv.forEach(function (camera) {
       var entity = cctvEntities[camera.id];
+      var ring = cctvRingEntities[camera.id];
       var isAffected = Boolean(affectedMap[camera.id]);
 
       entity.show = dom.toggleCctv.checked;
       entity.point.color = isAffected
         ? Cesium.Color.fromCssColorString("#ff5f56")
         : Cesium.Color.fromCssColorString("#47d7ac");
+      entity.point.pixelSize = isAffected ? 16 : 12;
       entity.label.text = isAffected ? camera.name + " 受影響" : camera.name;
+      ring.show = dom.toggleCctv.checked && isAffected;
     });
 
-    var blockedRoads = 0;
     roadEntities.forEach(function (road) {
-      var isBlocked = waterLevel >= road.minLevel;
+      var isBlocked = Boolean(blockedMap[road.id]);
       road.entity.polyline.material = isBlocked
-        ? Cesium.Color.fromCssColorString("#ff5f56")
+        ? new Cesium.PolylineGlowMaterialProperty({
+          glowPower: 0.25,
+          color: pulseColor("#ff5f56", 0.62, 1, 5.5, road.minLevel),
+        })
         : Cesium.Color.fromCssColorString("#fafafa").withAlpha(0.86);
       road.entity.polyline.width = isBlocked ? 8 : 5;
-      blockedRoads += isBlocked ? 1 : 0;
     });
 
     dom.affectedCctvCount.textContent = String(affected.affected);
-    dom.roadBreakCount.textContent = String(blockedRoads);
+    dom.roadBreakCount.textContent = String(blocked.blocked);
+  }
+
+  function updateImpactText(waterLevel) {
+    var forecast = model.getImpactForecast(waterLevel, config.water);
+    var affected = model.getAffectedCctv(sampleData.cctv, waterLevel, config.water.safetyBuffer);
+    var blocked = model.getBlockedRoads(sampleData.roads, waterLevel);
+    var label = forecast.severity === "critical" ? "CRITICAL" : forecast.severity === "warning" ? "WARNING" : "WATCH";
+
+    dom.alertBanner.className = "alert-banner is-" + forecast.severity;
+    dom.alertLevel.textContent = label;
+    dom.alertMessage.textContent = forecast.message;
+    dom.impactHeadline.textContent = label + " / 水位 " + waterLevel.toFixed(1) + "m";
+    dom.impactDetail.textContent = "預估 " + forecast.minutes + " 分鐘後擴大影響；CCTV "
+      + affected.affected + "/" + affected.total + " 受影響，道路 "
+      + blocked.blocked + "/" + blocked.total + " 中斷，土石流示範流路依水位啟動。";
   }
 
   function styleDebrisArea(dataSource) {
@@ -228,6 +328,94 @@
           color: Cesium.Color.fromCssColorString("#b94d2c").withAlpha(0.9),
         });
       }
+    });
+  }
+
+  function buildPathSampler(path) {
+    var positions = toCartesianPath(path, config.water.baseHeight + 35);
+    var segments = [];
+    var total = 0;
+
+    for (var i = 0; i < positions.length - 1; i++) {
+      var length = Cesium.Cartesian3.distance(positions[i], positions[i + 1]);
+      segments.push({ start: positions[i], end: positions[i + 1], length: length });
+      total += length;
+    }
+
+    return function (progress) {
+      var target = (progress % 1) * total;
+      var walked = 0;
+
+      for (var j = 0; j < segments.length; j++) {
+        var segment = segments[j];
+        if (walked + segment.length >= target) {
+          var local = (target - walked) / segment.length;
+          return Cesium.Cartesian3.lerp(segment.start, segment.end, local, new Cesium.Cartesian3());
+        }
+        walked += segment.length;
+      }
+
+      return positions[positions.length - 1];
+    };
+  }
+
+  function addDebrisFlowDemo() {
+    debrisFlowEntities = (sampleData.debrisFlows || []).map(function (flow, flowIndex) {
+      var sampler = buildPathSampler(flow.coordinates);
+      var pathPositions = toCartesianPath(flow.coordinates, config.water.baseHeight + 18);
+      var line = viewer.entities.add({
+        id: flow.id,
+        name: flow.name,
+        show: false,
+        polyline: {
+          positions: pathPositions,
+          width: 9,
+          material: new Cesium.PolylineGlowMaterialProperty({
+            glowPower: 0.32,
+            color: pulseColor("#b94d2c", 0.55, 1, 4.8, flowIndex),
+          }),
+          clampToGround: false,
+        },
+      });
+      var particles = [];
+
+      for (var i = 0; i < 5; i++) {
+        (function (particleIndex) {
+          particles.push(viewer.entities.add({
+            id: flow.id + "-particle-" + particleIndex,
+            name: flow.name + " 泥流粒子",
+            show: false,
+            position: new Cesium.CallbackProperty(function () {
+              var progress = getClockSeconds() * config.debris.particleSpeed + particleIndex * 0.18 + flowIndex * 0.08;
+              return sampler(progress);
+            }, false),
+            point: {
+              pixelSize: 11 - particleIndex,
+              color: Cesium.Color.fromCssColorString("#7a351f").withAlpha(0.92),
+              outlineColor: Cesium.Color.fromCssColorString("#ffcf8a").withAlpha(0.85),
+              outlineWidth: 2,
+              disableDepthTestDistance: Number.POSITIVE_INFINITY,
+            },
+          }));
+        })(i);
+      }
+
+      return {
+        minLevel: flow.minLevel,
+        line: line,
+        particles: particles,
+      };
+    });
+  }
+
+  function updateDebrisDemo(waterLevel) {
+    debrisFlowEntities.forEach(function (flow) {
+      var active = dom.toggleDebrisStream.checked && waterLevel >= flow.minLevel;
+
+      flow.line.show = active;
+      flow.particles.forEach(function (particle) {
+        particle.show = active;
+      });
     });
   }
 
@@ -270,6 +458,10 @@
       primitive.show = dom.toggleFlood.checked;
     });
 
+    foamEntities.forEach(function (entity) {
+      entity.show = dom.toggleFlood.checked;
+    });
+
     Object.keys(cctvEntities).forEach(function (id) {
       cctvEntities[id].show = dom.toggleCctv.checked;
     });
@@ -290,15 +482,55 @@
 
     renderFlood(waterLevel);
     updateCctvAndRoads(waterLevel);
+    updateDebrisDemo(waterLevel);
+    updateImpactText(waterLevel);
     applyLayerVisibility();
+  }
+
+  function stopAutoRise() {
+    if (autoRiseTimer) {
+      root.clearInterval(autoRiseTimer);
+      autoRiseTimer = null;
+    }
+    dom.playScenario.textContent = "播放升水";
+  }
+
+  function toggleAutoRise() {
+    if (autoRiseTimer) {
+      stopAutoRise();
+      return;
+    }
+
+    dom.playScenario.textContent = "暫停";
+    autoRiseTimer = root.setInterval(function () {
+      var nextLevel = getWaterLevel() + config.water.autoRiseStep;
+
+      if (nextLevel >= config.water.max) {
+        dom.waterLevel.value = String(config.water.max);
+        updateScenario();
+        stopAutoRise();
+        return;
+      }
+
+      dom.waterLevel.value = String(nextLevel.toFixed(2));
+      updateScenario();
+    }, config.water.autoRiseIntervalMs);
+  }
+
+  function resetScenario() {
+    stopAutoRise();
+    dom.waterLevel.value = String(config.water.initial);
+    updateScenario();
   }
 
   function bindUi() {
     dom.waterLevel.addEventListener("input", updateScenario);
+    dom.playScenario.addEventListener("click", toggleAutoRise);
+    dom.resetScenario.addEventListener("click", resetScenario);
     dom.toggleFlood.addEventListener("change", updateScenario);
     dom.toggleCctv.addEventListener("change", updateScenario);
-    dom.toggleDebrisArea.addEventListener("change", applyLayerVisibility);
-    dom.toggleDebrisStream.addEventListener("change", applyLayerVisibility);
+    dom.toggleDebrisArea.addEventListener("change", updateScenario);
+    dom.toggleDebrisStream.addEventListener("change", updateScenario);
   }
 
   function initViewer() {
@@ -364,6 +596,7 @@
     addLocalBasemapEntity();
     addCctvEntities();
     addRoadEntities();
+    addDebrisFlowDemo();
     updateScenario();
     loadDebrisLayers();
   }
