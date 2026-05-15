@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>cesiumStage | Disaster 3D MVP</title>
+  <link rel="icon" href="data:,">
   <link rel="stylesheet" href="https://3dmap.focusit.com.tw/easymap_data/Cesium-1.120/build/Cesium/Widgets/widgets.css">
   <link rel="stylesheet" href="assets/css/app.css">
   <script src="assets/js/config.js"></script>
@@ -20,6 +21,14 @@
       <div id="alertBanner" class="alert-banner is-watch">
         <span id="alertLevel">WATCH</span>
         <strong id="alertMessage">情境初始化中...</strong>
+      </div>
+
+      <div class="control-group">
+        <label class="control-label" for="scenarioSelect">
+          <span>示範區</span>
+          <strong id="scenarioHeightLabel">DEM -- m</strong>
+        </label>
+        <select id="scenarioSelect" class="scenario-select"></select>
       </div>
 
       <div class="control-group">
@@ -48,12 +57,20 @@
           <span class="stat-value" id="roadBreakCount">0</span>
           <span class="stat-label">道路中斷</span>
         </div>
+        <div class="stat">
+          <span class="stat-value" id="buildingFloodCount">0</span>
+          <span class="stat-label">受淹建物</span>
+        </div>
       </div>
 
       <div class="layer-list">
         <label class="layer-toggle">
           <input id="toggleFlood" type="checkbox" checked>
           <span>淹水水面動畫</span>
+        </label>
+        <label class="layer-toggle">
+          <input id="toggleBuildings" type="checkbox" checked>
+          <span>台中 3D 建物</span>
         </label>
         <label class="layer-toggle">
           <input id="toggleCctv" type="checkbox" checked>
@@ -79,6 +96,7 @@
 
     <section class="legend" aria-label="圖例">
       <div class="legend-row"><span class="swatch" style="background:#287bd9"></span>水位淹水範圍</div>
+      <div class="legend-row"><span class="swatch" style="background:#b8f7ff"></span>台中 3D 建物</div>
       <div class="legend-row"><span class="swatch" style="background:#ff5f56"></span>受影響 CCTV / 道路</div>
       <div class="legend-row"><span class="swatch" style="background:#f4a340"></span>土石流潛勢區</div>
       <div class="legend-row"><span class="swatch" style="background:#b94d2c"></span>土石流潛勢溪流</div>
@@ -90,7 +108,9 @@
   <script src="assets/js/sample-data.js"></script>
   <script src="assets/data/debris-areas.js"></script>
   <script src="assets/data/debris-streams.js"></script>
+  <script src="assets/data/taichung-buildings.js"></script>
   <script src="assets/js/flood-model.js"></script>
+  <script src="assets/js/building-model.js"></script>
   <script src="assets/js/app.js"></script>
 </body>
 </html>

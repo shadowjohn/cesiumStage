@@ -48,10 +48,36 @@
       autoRiseIntervalMs: 90,
       autoRiseStep: 0.08,
     },
+    terrain: {
+      mode: "ellipsoid",
+      exampleUrl: "https://www.focusit.com.tw/easymap/easymap_cesium_terrain.html",
+      exampleProvider: "Cesium.Terrain.fromWorldTerrain({ requestWaterMask: true })",
+      demHeightApi: "https://3wa.tw/demo/php/map/taiwan_dem_height/api.php?mode=getDemHeight",
+      demProjection: "EPSG:3826",
+      notes: "FocusIT 範例使用 Cesium World Terrain；正式 DEM 可由 20M 高程轉 quantized-mesh 或以批次 API 預取。",
+    },
     debris: {
       maxAreaAlpha: 0.28,
       streamWidth: 3,
       particleSpeed: 0.16,
+    },
+    buildings: {
+      enabled: true,
+      identityUrlTemplate: "https://3wa.tw/easymap_server/identity.php?mode=identity&wms_id=8&lon={lon}&lat={lat}&limit={limit}",
+      sourceLabel: "臺中市建物圖(113年最新版)",
+      maxFeatures: 1800,
+      baseHeight: 78,
+      floorHeight: 3.5,
+      floodHighlightLevel: 2.5,
+      defaultAlpha: 0.62,
+      maxFloodCollars: 90,
+      colors: {
+        low: "#b8f7ff",
+        mid: "#f4a340",
+        high: "#ff5f56",
+        flooded: "#3aa0ff",
+        outline: "#061018",
+      },
     },
   };
 })(window);

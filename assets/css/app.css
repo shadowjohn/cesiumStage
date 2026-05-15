@@ -13,7 +13,8 @@ body {
 }
 
 button,
-input {
+input,
+select {
   font: inherit;
 }
 
@@ -32,7 +33,7 @@ input {
   position: absolute;
   top: 18px;
   left: 18px;
-  width: min(360px, calc(100vw - 36px));
+  width: min(380px, calc(100vw - 36px));
   padding: 16px;
   border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 8px;
@@ -139,6 +140,18 @@ input[type="range"] {
   accent-color: #4cc3ff;
 }
 
+.scenario-select {
+  width: 100%;
+  min-height: 36px;
+  padding: 6px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 8px;
+  background: rgba(5, 10, 14, 0.86);
+  color: #f4fbff;
+  font-size: 15px;
+  font-weight: 800;
+}
+
 .action-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -161,14 +174,14 @@ input[type="range"] {
 
 .stats {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8px;
   margin: 14px 0;
 }
 
 .stat {
   min-width: 0;
-  padding: 10px;
+  padding: 9px 8px;
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.08);
 }
@@ -183,7 +196,7 @@ input[type="range"] {
 .stat-label {
   display: block;
   margin-top: 4px;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
   color: #b5c4cb;
 }

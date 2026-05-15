@@ -19,6 +19,16 @@
 - Carto `dark_all` 確認回傳 `Access-Control-Allow-Origin: *` 後，預設改成 Cesium live XYZ tile，保留同源 PNG 作 fallback。
 - 提高 UI 與 Cesium label 字級、字重、描邊與文字陰影，強化暗色底圖上的可讀性。
 
+## 2026-05-16 Taichung Buildings / Multi Scenario
+
+- 參考 `https://3wa.tw/demo/htm/test_javascript.php?id=365`，改用離線產生的 `assets/data/taichung-buildings.js` 載入台中建物。
+- 建物來源為 Easymap `identity.php?mode=identity&wms_id=8`，使用 `ORZ_WKT` 與 `b1d`，以每層 3.5m 拉 Cesium extruded polygon。
+- 新增烏日下游、大里溪側坡出口、太平山腳匯流口、南屯都會建物邊 4 個淹水示範區，可從 UI 切換。
+- 每個示範區配置 20M DEM 參考基準高、獨立淹水階段、CCTV、道路與相機位置。
+- 淹水時建物會以藍色貼邊 collar 顯示水深，並統計受淹建物數。
+- 參考 `https://3wa.tw/demo/php/map/taiwan_dem_height/`，確認 DEM 查詢需先轉 EPSG:3826 後呼叫 `api.php?mode=getDemHeight`。
+- 檢查 `https://www.focusit.com.tw/easymap/easymap_cesium_terrain.html`，確認該範例使用 Cesium Ion `Cesium.Terrain.fromWorldTerrain({ requestWaterMask: true })` 與 `map.enable3DTerrain()`，不是本 repo 自轉 terrain。
+
 ## 延續事項
 
 - 真實 DEM / DTM 轉 quantized-mesh terrain。

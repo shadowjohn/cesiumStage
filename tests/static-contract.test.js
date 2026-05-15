@@ -30,6 +30,8 @@ test("app code avoids blocked browser request and popup APIs", () => {
     "assets/js/config.js",
     "assets/js/sample-data.js",
     "assets/js/flood-model.js",
+    "assets/js/building-model.js",
+    "assets/data/taichung-buildings.js",
   ];
 
   const combined = files.map(readProjectFile).join("\n");
@@ -45,6 +47,47 @@ test("debris layers are packaged as browser globals", () => {
 
   assert.match(areas, /window\.CESIUM_STAGE_DEBRIS_AREAS\s*=/);
   assert.match(streams, /window\.CESIUM_STAGE_DEBRIS_STREAMS\s*=/);
+});
+
+test("Taichung building overlay is packaged as a static browser global", () => {
+  const html = readProjectFile("index.html");
+  const config = readProjectFile("assets/js/config.js");
+  const app = readProjectFile("assets/js/app.js");
+  const dataPath = path.join(root, "assets/data/taichung-buildings.js");
+  const data = readProjectFile("assets/data/taichung-buildings.js");
+
+  assert.ok(html.indexOf("assets/data/taichung-buildings.js") < html.indexOf("assets/js/app.js"));
+  assert.match(html, /id="toggleBuildings"/);
+  assert.match(html, /id="buildingFloodCount"/);
+  assert.match(config, /identity\.php\?mode=identity&wms_id=8/);
+  assert.match(config, /floorHeight:\s*3\.5/);
+  assert.match(app, /addTaichungBuildings/);
+  assert.match(app, /CESIUM_STAGE_TAICHUNG_BUILDINGS/);
+  assert.match(app, /extrudedHeight/);
+  assert.match(data, /window\.CESIUM_STAGE_TAICHUNG_BUILDINGS\s*=/);
+  assert.ok(fs.statSync(dataPath).size > 10000);
+});
+
+test("multiple downstream flood scenarios are selectable", () => {
+  const html = readProjectFile("index.html");
+  const sampleData = readProjectFile("assets/js/sample-data.js");
+  const app = readProjectFile("assets/js/app.js");
+  const config = readProjectFile("assets/js/config.js");
+
+  assert.match(html, /id="scenarioSelect"/);
+  assert.match(html, /id="scenarioHeightLabel"/);
+  assert.match(sampleData, /floodScenarios/);
+  assert.match(sampleData, /wuri-downstream/);
+  assert.match(sampleData, /dali-downstream/);
+  assert.match(sampleData, /taiping-outlet/);
+  assert.match(sampleData, /nantun-urban/);
+  assert.match(sampleData, /demBaseHeight/);
+  assert.match(app, /populateScenarioSelect/);
+  assert.match(app, /handleScenarioChange/);
+  assert.match(app, /flyToScenario/);
+  assert.match(app, /buildingFloodCollars/);
+  assert.match(config, /demHeightApi/);
+  assert.match(config, /Cesium\.Terrain\.fromWorldTerrain/);
 });
 
 test("local basemap is available as a same-origin image", () => {
