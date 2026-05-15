@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>cesiumStage | Disaster 3D MVP</title>
+  <link rel="stylesheet" href="https://3dmap.focusit.com.tw/easymap_data/Cesium-1.120/build/Cesium/Widgets/widgets.css">
+  <link rel="stylesheet" href="assets/css/app.css">
+  <script src="assets/js/config.js"></script>
+  <script src="https://3dmap.focusit.com.tw/easymap_data/Cesium-1.120/build/Cesium/Cesium.js"></script>
+</head>
+<body>
+  <main id="app">
+    <section class="stage-panel" aria-label="災防 3D 控制台">
+      <div class="stage-title">
+        <h1>cesiumStage</h1>
+        <span>Flood + Debris MVP</span>
+      </div>
+
+      <div class="control-group">
+        <label class="control-label" for="waterLevel">
+          <span>模擬水位</span>
+          <strong><span id="waterLevelValue">0.0</span> m</strong>
+        </label>
+        <input id="waterLevel" type="range" min="0" max="5" step="0.1" value="1.6">
+      </div>
+
+      <div class="stats" aria-live="polite">
+        <div class="stat">
+          <span class="stat-value" id="floodBandCount">0</span>
+          <span class="stat-label">淹水區塊</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value" id="affectedCctvCount">0</span>
+          <span class="stat-label">受影響 CCTV</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value" id="roadBreakCount">0</span>
+          <span class="stat-label">道路中斷</span>
+        </div>
+      </div>
+
+      <div class="layer-list">
+        <label class="layer-toggle">
+          <input id="toggleFlood" type="checkbox" checked>
+          <span>淹水水面動畫</span>
+        </label>
+        <label class="layer-toggle">
+          <input id="toggleCctv" type="checkbox" checked>
+          <span>CCTV 受影響點位</span>
+        </label>
+        <label class="layer-toggle">
+          <input id="toggleDebrisArea" type="checkbox" checked>
+          <span>土石流潛勢區</span>
+        </label>
+        <label class="layer-toggle">
+          <input id="toggleDebrisStream" type="checkbox" checked>
+          <span>土石流潛勢溪流</span>
+        </label>
+      </div>
+
+      <div id="statusText" class="status">Cesium 初始化中...</div>
+    </section>
+
+    <section class="legend" aria-label="圖例">
+      <div class="legend-row"><span class="swatch" style="background:#287bd9"></span>水位淹水範圍</div>
+      <div class="legend-row"><span class="swatch" style="background:#ff5f56"></span>受影響 CCTV / 道路</div>
+      <div class="legend-row"><span class="swatch" style="background:#f4a340"></span>土石流潛勢區</div>
+      <div class="legend-row"><span class="swatch" style="background:#b94d2c"></span>土石流潛勢溪流</div>
+    </section>
+
+    <div id="cesiumContainer"></div>
+  </main>
+
+  <script src="assets/js/sample-data.js"></script>
+  <script src="assets/data/debris-areas.js"></script>
+  <script src="assets/data/debris-streams.js"></script>
+  <script src="assets/js/flood-model.js"></script>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>

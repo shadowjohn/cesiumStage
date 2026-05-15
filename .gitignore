@@ -1,0 +1,13 @@
+.superpowers/
+.cache/
+node_modules/
+__pycache__/
+*.log
+*.tmp
+.env
+.env.*
+Thumbs.db
+.DS_Store
+
+# 原始 GIS 壓縮檔保留在本機，repo 只提交轉出的展示資料。
+*.zip
